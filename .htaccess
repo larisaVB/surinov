@@ -1,0 +1,60 @@
+# Включение механизма преобразований URL адресов
+RewriteEngine On
+# Указывает путь от корня сайта
+RewriteBase /
+
+# Редирект с www на без www - предназначен для Денвера
+# На хостинге hostland этот редирект нужно закоментировать
+RewriteCond %{HTTP_HOST} ^www\.(.*) [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+# редирект с http на https
+RewriteCond %{SERVER_PORT} ^80$ [OR]
+RewriteCond %{HTTP} =on
+RewriteRule ^(.*)$ https://template1.itworldmy.ru/$1 [R=301,L]
+
+# Спрятать index.html
+RewriteCond %{THE_REQUEST} /index\.html(/(.*?))? [NC]
+RewriteRule ^(.*?)index\.html(/(.*?))?$ /$1$2 [L,R=301,NC,NE]
+
+# !!! Убираем слеши в конце URL в различных ситутациях !!!
+# Если файл содержит точку
+RewriteCond %{REQUEST_URI} \..+$
+# И это не директория
+RewriteCond %{REQUEST_FILENAME} !-d
+# Является файлом
+RewriteCond %{REQUEST_FILENAME} -f
+# И в конце URL есть слеш
+RewriteCond %{REQUEST_URI} ^(.+)/$
+# Исключить слеш
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+# Убираем повторяющиеся слеши
+RewriteCond %{REQUEST_URI} ^(.*?)\/{2,}(.*?)$
+RewriteRule . %1/%2 [L,R=301]
+RewriteCond %{THE_REQUEST} //
+RewriteRule .* /$0 [R=301,L]
+
+# Запрет на отображение содержимого каталога
+Options -Indexes
+
+# Обработка ошибок 
+ErrorDocument 400 /errors.php
+ErrorDocument 403 /errors.php
+ErrorDocument 404 /errors.php
+ErrorDocument 405 /errors.php
+ErrorDocument 408 /errors.php
+ErrorDocument 500 /errors.php
+ErrorDocument 502 /errors.php
+ErrorDocument 504 /errors.php
+
+# Закрытие от индексации
+SetEnvIf Request_URI "^/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/about/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/applications/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/basics/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/images/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/map/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/tech/" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/errors.php" NOINDEXFOLLOW
+SetEnvIf Request_URI "^/.htaccess" NOINDEXFOLLOW
+Header set X-Robots-Tag "noindex, nofollow" env=NOINDEXFOLLOW
